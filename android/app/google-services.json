@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "685507959568",
+    "project_id": "fly-spotter",
+    "storage_bucket": "fly-spotter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:685507959568:android:0c6ed9627b6aee152b6395",
+        "android_client_info": {
+          "package_name": "com.example.specifier"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkErjyIiTLgZph4894S6H2O8BGPUvVLWU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
