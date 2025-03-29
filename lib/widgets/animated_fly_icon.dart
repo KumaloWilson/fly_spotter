@@ -7,14 +7,14 @@ class AnimatedFlyIcon extends StatefulWidget {
   final bool animate;
 
   const AnimatedFlyIcon({
-    Key? key,
+    super.key,
     this.size = 100,
     this.color = Colors.white,
     this.animate = true,
-  }) : super(key: key);
+  });
 
   @override
-  _AnimatedFlyIconState createState() => _AnimatedFlyIconState();
+  State<AnimatedFlyIcon> createState() => _AnimatedFlyIconState();
 }
 
 class _AnimatedFlyIconState extends State<AnimatedFlyIcon> with SingleTickerProviderStateMixin {
@@ -66,9 +66,9 @@ class _AnimatedFlyIconState extends State<AnimatedFlyIcon> with SingleTickerProv
           scale: _scaleAnimation.value,
           child: Transform.rotate(
             angle: math.sin(_controller.value * math.pi * 2) * _rotationAnimation.value,
-            child: Icon(
-              Icons.bug_report,
-              size: widget.size,
+            child: Image.asset(
+              'assets/images/logo_one.png',
+              width: widget.size,
               color: widget.color,
             ),
           ),

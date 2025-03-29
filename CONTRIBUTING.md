@@ -2,11 +2,11 @@
 
 ## Welcome Contributors! 
 
-First off, thank you for considering contributing to FlySpotter Pro. It's people like you that make FlySpotter Pro such a great tool for the community.
+First off, thank you for considering contributing to FlySpotter. It's people like you that make FlySpotter such a great tool for the community.
 
 ## Code of Conduct
 
-By participating in this project, you are expected to uphold our Code of Conduct. Please report unacceptable behavior to [project maintainer email].
+By participating in this project, you are expected to uphold our Code of Conduct. Please report unacceptable behavior to kumalowilson900@gmail.com.
 
 ## How Can I Contribute?
 

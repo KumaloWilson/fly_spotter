@@ -42,6 +42,8 @@ dependencies:
   google_maps_flutter: ^2.12.0
   logger: ^2.5.0
   supabase_flutter: ^2.8.4
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.4
 
 dev_dependencies:
   flutter_test:
@@ -60,3 +62,25 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/ai_model/
+    - assets/images/
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/images/logo.png"
+#  adaptive_icon_background: "assets/images/store-images/ic_launcher_bg.png"
+#  adaptive_icon_foreground: "assets/images/store-images/ic_launcher_fg.png"
+
+flutter_native_splash:
+  android: true
+  ios: true
+  fullscreen: true
+  image: "assets/images/logo.png"
+  color: "#09090B"
+  color_dark: "#09090B"
+  android_12:
+    image: "assets/images/logo.png"
+    color: "#09090B"
+    icon_background_color_dark: "#09090B"

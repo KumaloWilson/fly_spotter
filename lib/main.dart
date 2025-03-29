@@ -1,14 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:specifier/services/supabase_service.dart';
-import 'package:specifier/supabase_options.dart';
 import 'package:specifier/utiils/app_theme.dart';
 import 'package:specifier/views/splash/splash.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/identification_controller.dart';
 import 'controllers/theme_controller.dart';
