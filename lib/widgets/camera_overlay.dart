@@ -155,3 +155,4 @@ class OverlayWithHolePainter extends CustomPainter {
 bool shouldRepaint(CustomPainter oldDelegate) {
   return false;
 }
+

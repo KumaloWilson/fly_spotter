@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:specifier/utiils/logs.dart';
 import '../../controllers/identification_controller.dart';
+import 'camera_screen.dart';
+import 'identification_tips_screen.dart';
 
 class IdentificationScreen extends StatefulWidget {
-  const IdentificationScreen({super.key});
-
   @override
   State<IdentificationScreen> createState() => _IdentificationScreenState();
 }
 
 class _IdentificationScreenState extends State<IdentificationScreen> {
-  final IdentificationController identificationController = Get.find<IdentificationController>();
+  final IdentificationController identificationController = Get.put(IdentificationController());
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +26,6 @@ class _IdentificationScreenState extends State<IdentificationScreen> {
           children: [
             Obx(() {
               if (identificationController.errorMessage.isNotEmpty) {
-                DevLogs.logError(identificationController.errorMessage.toString());
-
                 return Container(
                   padding: EdgeInsets.all(10),
                   margin: EdgeInsets.only(bottom: 20),
@@ -57,93 +54,104 @@ class _IdentificationScreenState extends State<IdentificationScreen> {
     );
   }
 
+// Fix for the _buildImageSelectionUI method
   Widget _buildImageSelectionUI() {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Take a photo or select an image of a fly to identify',
-            style: TextStyle(
-              fontSize: 16,
-            ),
-          ),
-          SizedBox(height: 30),
-          Row(
-            children: [
-              Expanded(
-                child: _buildOptionCard(
-                  icon: Icons.camera_alt,
-                  title: 'Camera',
-                  onTap: () => identificationController.pickImageFromCamera(),
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '',
+              style: TextStyle(
+                fontSize: 16,
               ),
-              SizedBox(width: 20),
-              Expanded(
-                child: _buildOptionCard(
-                  icon: Icons.photo_library,
-                  title: 'Gallery',
-                  onTap: () => identificationController.pickImageFromGallery(),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 30),
-          Text(
-            'Recent Identifications',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
             ),
+            IconButton(
+              icon: Icon(Icons.lightbulb_outline),
+              tooltip: 'Tips for better identification',
+              onPressed: () => Get.to(() => IdentificationTipsScreen()),
+            ),
+          ],
+        ),
+        SizedBox(height: 30),
+        Row(
+          children: [
+            Expanded(
+              child: _buildOptionCard(
+                icon: Icons.camera_alt,
+                title: 'Camera',
+                onTap: () => Get.to(() => CameraScreen()),
+              ),
+            ),
+            SizedBox(width: 20),
+            Expanded(
+              child: _buildOptionCard(
+                icon: Icons.photo_library,
+                title: 'Gallery',
+                onTap: () => identificationController.pickImageFromGallery(),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 30),
+        Text(
+          'Recent Identifications',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
-          SizedBox(height: 10),
-          Expanded(
-            child: Obx(() {
-              if (identificationController.identificationHistory.isEmpty) {
-                return Center(
-                  child: Text(
-                    'No identifications yet',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                );
-              }
+        ),
+        SizedBox(height: 10),
 
-              return ListView.builder(
-                shrinkWrap: true,
-                itemCount: identificationController.identificationHistory.length,
-                itemBuilder: (context, index) {
-                  final item = identificationController.identificationHistory[index];
-                  return Card(
-                    margin: EdgeInsets.only(bottom: 10),
-                    child: ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          item.imageUrl,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      title: Text(item.species.name),
-                      subtitle: Text(
-                        'Confidence: ${(item.confidenceScore * 100).toStringAsFixed(1)}%',
-                      ),
-                      trailing: Text(
-                        '${_formatDate(item.timestamp)}',
-                        style: TextStyle(color: Colors.grey),
+        Container(
+          height: 300, // Set a fixed height or use MediaQuery to get a dynamic height
+          child: Obx(() {
+            if (identificationController.identificationHistory.isEmpty) {
+              return Center(
+                child: Text(
+                  'No identifications yet',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              );
+            }
+
+            return ListView.builder(
+              itemCount: identificationController.identificationHistory.length,
+              itemBuilder: (context, index) {
+                final item = identificationController.identificationHistory[index];
+                return Card(
+                  margin: EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        item.imageUrl,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
                       ),
                     ),
-                  );
-                },
-              );
-            }),
-          ),
-        ],
-      ),
+                    title: Text(item.species.name),
+                    subtitle: Text(
+                      'Confidence: ${(item.confidenceScore * 100).toStringAsFixed(1)}%',
+                    ),
+                    trailing: Text(
+                      _formatDate(item.timestamp),
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                );
+              },
+            );
+          }),
+        ),
+      ],
     );
   }
 
+  // Modify the _buildIdentificationResultsUI method to handle low light and confidence threshold
   Widget _buildIdentificationResultsUI() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,17 +179,55 @@ class _IdentificationScreenState extends State<IdentificationScreen> {
               ),
             ),
             SizedBox(height: 20),
-            Text(
-              'Identification Results',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+
+            // Show low light warning if detected
+            if (identificationController.isLowLight.value)
+              _buildWarningCard(
+                icon: Icons.wb_sunny,
+                title: 'Low Light Detected',
+                message: 'For better identification accuracy, please take a photo in a well-lit environment.',
+                actionText: 'Try Again',
+                onAction: () => identificationController.clearSelectedImage(),
               ),
-            ),
-            SizedBox(height: 10),
-            identificationController.identificationResults.isEmpty
-                ? Text('No flies detected in this image')
-                : _buildResultsList(),
+
+            if (!identificationController.isLowLight.value) ...[
+              Text(
+                'Identification Results',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 10),
+
+              // No flies detected
+              if (identificationController.identificationResults.isEmpty)
+                _buildWarningCard(
+                  icon: Icons.search_off,
+                  title: 'No Flies Detected',
+                  message: 'We couldn\'t identify any flies in this image. Please try with a clearer image.',
+                  actionText: 'Try Again',
+                  onAction: () => identificationController.clearSelectedImage(),
+                ),
+
+              // Low confidence results
+              if (identificationController.identificationResults.isNotEmpty &&
+                  identificationController.identificationResults[0]['confidence'] < identificationController.confidenceThreshold.value)
+                _buildWarningCard(
+                  icon: Icons.error_outline,
+                  title: 'Low Confidence Result',
+                  message: 'We\'re not very confident about this identification (${(identificationController.identificationResults[0]['confidence'] * 100).toStringAsFixed(1)}%). Try with a clearer image for better results.',
+                  actionText: 'Try Again',
+                  onAction: () => identificationController.clearSelectedImage(),
+                  showResults: true,
+                ),
+
+              // High confidence results
+              if (identificationController.identificationResults.isNotEmpty &&
+                  identificationController.identificationResults[0]['confidence'] >= identificationController.confidenceThreshold.value)
+                _buildResultsList(),
+            ],
+
             SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () => identificationController.clearSelectedImage(),
@@ -198,6 +244,82 @@ class _IdentificationScreenState extends State<IdentificationScreen> {
         ),
         ),
       ],
+    );
+  }
+
+// Add this new widget for warning cards
+  Widget _buildWarningCard({
+    required IconData icon,
+    required String title,
+    required String message,
+    required String actionText,
+    required VoidCallback onAction,
+    bool showResults = false,
+  }) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      color: Colors.amber.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  icon,
+                  color: Colors.amber.shade800,
+                  size: 24,
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.amber.shade800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            Text(
+              message,
+              style: TextStyle(fontSize: 14),
+            ),
+            SizedBox(height: 16),
+
+            // Show results if requested (for low confidence)
+            if (showResults && identificationController.identificationResults.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Divider(),
+                  SizedBox(height: 8),
+                  Text(
+                    'Possible Match:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  _buildResultsList(),
+                  SizedBox(height: 8),
+                  Divider(),
+                ],
+              ),
+
+            TextButton.icon(
+              onPressed: onAction,
+              icon: Icon(Icons.refresh),
+              label: Text(actionText),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.amber.shade800,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -321,3 +443,4 @@ class _IdentificationScreenState extends State<IdentificationScreen> {
     }
   }
 }
+

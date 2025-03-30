@@ -16,6 +16,8 @@ class IdentificationController extends GetxController {
   final RxList<dynamic> identificationResults = <dynamic>[].obs;
   final Rx<File?> selectedImage = Rx<File?>(null);
   final RxList<IdentificationResult> identificationHistory = <IdentificationResult>[].obs;
+  final RxBool isLowLight = false.obs;
+  final RxDouble confidenceThreshold = 0.8.obs; // 80% threshold
 
   @override
   void onInit() {
@@ -88,19 +90,25 @@ class IdentificationController extends GetxController {
     isLoading.value = true;
     errorMessage.value = '';
     identificationResults.clear();
+    isLowLight.value = false;
 
     try {
+      // Check for low light conditions
+      bool lowLightDetected = await _checkLowLightCondition(selectedImage.value!);
+      isLowLight.value = lowLightDetected;
+
       // Run identification
       List<dynamic> results = await _identificationService.identifyFromImage(selectedImage.value!);
       identificationResults.value = results;
 
-      // Save result if we have a match
+      // Save result if we have a match with confidence above threshold
       if (results.isNotEmpty) {
         var topResult = results[0];
         String speciesId = topResult['label'].toString().split(' ')[0]; // Assuming format "id name"
         double confidence = topResult['confidence'];
 
-        try {
+        // Only save if confidence is above threshold
+        if (confidence >= confidenceThreshold.value) {
           await _identificationService.saveIdentificationResult(
             userId: authController.userModel.value!.uid,
             imageFile: selectedImage.value!,
@@ -110,12 +118,6 @@ class IdentificationController extends GetxController {
 
           // Refresh history
           await loadIdentificationHistory();
-        } catch (saveError) {
-          // Log the specific save error
-          DevLogs.logError('Save identification result error: $saveError');
-
-          // Optionally, you might want to show a more user-friendly error
-          errorMessage.value = 'Could not save identification result. Please try again.';
         }
       }
     } catch (e) {
@@ -129,6 +131,28 @@ class IdentificationController extends GetxController {
   void clearSelectedImage() {
     selectedImage.value = null;
     identificationResults.clear();
+  }
+
+  // Add a method to check for low light conditions
+  Future<bool> _checkLowLightCondition(File imageFile) async {
+    try {
+      // Use the image processing service to analyze brightness
+      return await _identificationService.detectLowLight(imageFile);
+    } catch (e) {
+      DevLogs.logError('Error detecting light conditions: $e');
+      return false; // Default to false if detection fails
+    }
+  }
+
+  // Add this method to process images from the camera screen
+  Future<void> processImageFromCamera(File imageFile, bool wasLowLight) async {
+    selectedImage.value = imageFile;
+    isLowLight.value = wasLowLight;
+
+    // If it was low light, don't automatically identify
+    if (!wasLowLight) {
+      await identifyFly();
+    }
   }
 }
 

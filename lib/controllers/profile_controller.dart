@@ -1,17 +1,19 @@
 import 'dart:io';
 import 'package:get/get.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../models/user_Model.dart';
 import '../services/firestore_service.dart';
+import '../services/supabase_service.dart';
+import '../utiils/logs.dart';
 import 'auth_controller.dart';
 
 class ProfileController extends GetxController {
   final FirestoreService _firestoreService = FirestoreService();
-  final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _imagePicker = ImagePicker();
   final Uuid _uuid = Uuid();
+  final _supabase = SupabaseManager.client;
 
   final AuthController authController = Get.find<AuthController>();
 
@@ -46,26 +48,50 @@ class ProfileController extends GetxController {
 
     try {
       // Pick image
-      final XFile? image = await _imagePicker.pickImage(
+      final XFile? imageFile = await _imagePicker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 70,
       );
 
-      if (image == null) {
+      if (imageFile == null) {
         isLoading.value = false;
         return;
       }
 
-      // Upload to Firebase Storage
       String fileName = '${_uuid.v4()}.jpg';
-      Reference storageRef = _storage.ref().child('profile_pictures/${currentUser!.uid}/$fileName');
 
-      UploadTask uploadTask = storageRef.putFile(File(image.path));
-      TaskSnapshot snapshot = await uploadTask;
-      String photoUrl = await snapshot.ref.getDownloadURL();
+      // Prepare the file path in Supabase Storage
+      final filePath = 'profilepictures/${currentUser!.uid}/$fileName';
+
+      // Upload image to Supabase Storage
+      String imageUrl;
+      try {
+        final uploadResponse = await _supabase.storage
+            .from('profilepictures')
+            .upload(
+          filePath,
+          File(imageFile!.path),
+          fileOptions: FileOptions(
+            upsert: true,
+          ),
+        );
+
+        // Verify upload success
+        if (uploadResponse == null) {
+          throw StorageException('Upload failed: No response from Supabase');
+        }
+
+        // Get public URL for the uploaded image
+        imageUrl = _supabase.storage
+            .from('profilepictures')
+            .getPublicUrl(filePath);
+      } on StorageException catch (storageError) {
+        DevLogs.logError('Supabase Storage Error: ${storageError.message}');
+        throw 'Storage upload failed: ${storageError.message}';
+      }
 
       // Update user profile
-      await authController.updateProfile(photoUrl: photoUrl);
+      await authController.updateProfile(photoUrl: imageUrl);
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {
