@@ -39,7 +39,7 @@ class AppTheme {
       elevation: 0,
       centerTitle: true,
       titleTextStyle: GoogleFonts.poppins(
-        fontSize: 20,
+        fontSize: 16,
         fontWeight: FontWeight.w600,
         color: Colors.white,
       ),
