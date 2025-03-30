@@ -106,7 +106,7 @@ class IdentificationTipsScreen extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -114,7 +114,7 @@ class IdentificationTipsScreen extends StatelessWidget {
                 Text(
                   description,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 12,
                     color: Colors.grey[700],
                   ),
                 ),
