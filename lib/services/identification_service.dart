@@ -20,8 +20,8 @@ class IdentificationService {
     try {
       if (!_modelLoaded) {
         await Tflite.loadModel(
-          model: 'assets/models/fly_identification_model.tflite',
-          labels: 'assets/models/labels.txt',
+          model: 'assets/ai_model/model_unquant.tflite',
+          labels: 'assets/ai_model/labels.txt',
         );
         _modelLoaded = true;
       }

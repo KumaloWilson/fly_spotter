@@ -5,7 +5,7 @@ import '../../controllers/profile_controller.dart';
 
 class SettingsScreen extends StatelessWidget {
   final ThemeController themeController = Get.find<ThemeController>();
-  final ProfileController profileController = Get.put(ProfileController());
+  final ProfileController profileController = Get.find<ProfileController>();
 
   @override
   Widget build(BuildContext context) {

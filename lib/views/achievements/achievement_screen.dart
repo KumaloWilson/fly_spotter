@@ -13,7 +13,7 @@ class AchievementsScreen extends StatefulWidget {
 }
 
 class _AchievementsScreenState extends State<AchievementsScreen> {
-  final AchievementsController achievementsController = Get.put(AchievementsController());
+  final AchievementsController achievementsController = Get.find<AchievementsController>();
 
 
   @override

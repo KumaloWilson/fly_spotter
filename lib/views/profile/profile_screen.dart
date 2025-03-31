@@ -4,9 +4,11 @@ import '../../controllers/profile_controller.dart';
 import '../../controllers/auth_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
-  final ProfileController profileController = Get.put(ProfileController());
+  final ProfileController profileController = Get.find<ProfileController>();
   final AuthController authController = Get.find<AuthController>();
   final TextEditingController nameController = TextEditingController();
+
+  ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

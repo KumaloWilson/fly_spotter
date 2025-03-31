@@ -10,7 +10,7 @@ class IdentificationScreen extends StatefulWidget {
 }
 
 class _IdentificationScreenState extends State<IdentificationScreen> {
-  final IdentificationController identificationController = Get.put(IdentificationController());
+  final IdentificationController identificationController = Get.find<IdentificationController>();
 
   @override
   Widget build(BuildContext context) {

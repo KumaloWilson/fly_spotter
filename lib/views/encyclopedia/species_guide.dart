@@ -125,7 +125,7 @@ class _SpeciesGuideScreenState extends State<SpeciesGuideScreen> {
               itemBuilder: (context, index) {
                 final species = filteredSpecies[index];
                 return CustomCard(
-                  // margin: EdgeInsets.only(bottom: 12),
+                  margin: EdgeInsets.only(bottom: 16),
                   onTap: () {
                     Get.to(() => SpeciesDetailScreen(species: species));
                   },

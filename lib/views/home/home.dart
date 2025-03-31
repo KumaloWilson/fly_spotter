@@ -20,7 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final AuthController authController = Get.find<AuthController>();
-  final AchievementsController achievementsController = Get.put(AchievementsController());
+  final AchievementsController achievementsController = Get.find<AchievementsController>();
   int _currentIndex = 0;
 
   final List<Widget> _screens = [

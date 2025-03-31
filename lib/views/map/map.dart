@@ -12,7 +12,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final MapController mapController = Get.put(MapController());
+  final MapController mapController = Get.find<MapController>();
 
   @override
   Widget build(BuildContext context) {

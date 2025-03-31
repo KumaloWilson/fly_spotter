@@ -6,8 +6,11 @@ import 'package:get_storage/get_storage.dart';
 import 'package:specifier/services/supabase_service.dart';
 import 'package:specifier/utiils/app_theme.dart';
 import 'package:specifier/views/splash/splash.dart';
+import 'controllers/archievements_controller.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/identification_controller.dart';
+import 'controllers/map_controller.dart';
+import 'controllers/profile_controller.dart';
 import 'controllers/theme_controller.dart';
 
 void main() async {
@@ -21,6 +24,9 @@ void main() async {
   Get.put(AuthController(), permanent: true);
   Get.put(ThemeController(), permanent: true);
   Get.put(IdentificationController(), permanent: true);
+  Get.put(AchievementsController(), permanent: true);
+  Get.put(ProfileController(), permanent: true);
+  Get.put(MapController(), permanent: true);
 
   runApp(MyApp());
 }
