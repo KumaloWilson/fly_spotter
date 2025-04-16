@@ -40,7 +40,7 @@ class CustomCard extends StatelessWidget {
         child: Container(
           decoration: addBorder ? BoxDecoration(
             border: Border.all(
-              color: borderColor ?? theme.primaryColor.withOpacity(0.5),
+              color: borderColor ?? theme.primaryColor.withValues(alpha: 0.5),
               width: 1.5,
             ),
             borderRadius: borderRadius ?? defaultRadius,

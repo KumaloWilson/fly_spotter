@@ -5,6 +5,8 @@ import 'camera_screen.dart';
 import 'identification_tips_screen.dart';
 
 class IdentificationScreen extends StatefulWidget {
+  const IdentificationScreen({super.key});
+
   @override
   State<IdentificationScreen> createState() => _IdentificationScreenState();
 }

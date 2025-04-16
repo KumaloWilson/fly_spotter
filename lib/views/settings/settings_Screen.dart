@@ -3,8 +3,16 @@ import 'package:get/get.dart';
 import '../../controllers/theme_controller.dart';
 import '../../controllers/profile_controller.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
   final ThemeController themeController = Get.find<ThemeController>();
+
   final ProfileController profileController = Get.find<ProfileController>();
 
   @override

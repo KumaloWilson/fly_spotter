@@ -82,7 +82,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   Text(
                     'Achievements Unlocked',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 14,
                     ),
                   ),
@@ -96,7 +96,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   }
 
   Widget _buildProgressCircle(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 80,
       height: 80,
       child: Stack(
@@ -108,7 +108,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
               child: CircularProgressIndicator(
                 value: achievementsController.overallProgress,
                 strokeWidth: 8,
-                backgroundColor: Colors.white.withOpacity(0.3),
+                backgroundColor: Colors.white.withValues(alpha: 0.3),
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ),
