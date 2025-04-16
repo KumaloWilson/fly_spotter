@@ -151,7 +151,7 @@ class HomeContent extends StatelessWidget {
             'Identify fly species using our advanced AI technology',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
             ),
           ),
           SizedBox(height: 20),
@@ -333,47 +333,49 @@ class HomeContent extends StatelessWidget {
                   margin: EdgeInsets.only(right: 12),
                   child: CustomCard(
                     padding: EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.bug_report,
-                              size: 40,
-                              color: Colors.grey[600],
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.bug_report,
+                                size: 40,
+                                color: Colors.grey[600],
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(height: 12),
-                        Text(
-                          'House Fly',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                          SizedBox(height: 12),
+                          Text(
+                            'House Fly',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Confidence: 95%',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).primaryColor,
+                          SizedBox(height: 4),
+                          Text(
+                            'Confidence: 95%',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).primaryColor,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Today',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
+                          SizedBox(height: 4),
+                          Text(
+                            'Today',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -455,8 +457,8 @@ class HomeContent extends StatelessWidget {
                         height: 50,
                         decoration: BoxDecoration(
                           color: achievement.isUnlocked
-                              ? Theme.of(context).primaryColor.withOpacity(0.2)
-                              : Colors.grey.withOpacity(0.2),
+                              ? Theme.of(context).primaryColor.withValues(alpha: 0.2)
+                              : Colors.grey.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(

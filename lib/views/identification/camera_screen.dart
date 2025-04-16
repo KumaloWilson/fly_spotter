@@ -2,15 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:camera/camera.dart';
-import 'package:specifier/utiils/logs.dart';
+import 'package:image/image.dart' as img;
 import '../../controllers/identification_controller.dart';
 import '../../widgets/camera_quality_overlay.dart';
 
 class CameraScreen extends StatefulWidget {
-  const CameraScreen({super.key});
-
   @override
-  State<CameraScreen> createState() => _CameraScreenState();
+  _CameraScreenState createState() => _CameraScreenState();
 }
 
 class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver {
@@ -22,6 +20,7 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
   bool isCapturing = false;
   bool isLowLight = false;
   double currentExposure = 0.0;
+  bool _isAdjustingExposure = false;
 
   @override
   void initState() {
@@ -32,8 +31,14 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
 
   @override
   void dispose() {
+    // Stop image stream before disposing
+    cameraController?.stopImageStream().then((_) {
+      cameraController?.dispose();
+    }).catchError((e) {
+      print('Error stopping image stream: $e');
+    });
+
     WidgetsBinding.instance.removeObserver(this);
-    cameraController?.dispose();
     super.dispose();
   }
 
@@ -46,6 +51,7 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     }
   }
 
+  // Update the initializeCamera method to add better error handling
   Future<void> initializeCamera() async {
     try {
       cameras = await availableCameras();
@@ -67,6 +73,9 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
         orElse: () => cameras.first,
       );
 
+      // Dispose of any existing controller before creating a new one
+      await cameraController?.dispose();
+
       cameraController = CameraController(
         camera,
         ResolutionPreset.high,
@@ -74,10 +83,23 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
 
-      await cameraController!.initialize();
+      // Add a timeout to initialization
+      await cameraController!.initialize().timeout(
+        Duration(seconds: 10),
+        onTimeout: () {
+          throw 'Camera initialization timed out. Please try again.';
+        },
+      );
+
+      // Reset exposure value when initializing
+      currentExposure = 0.0;
 
       // Start image stream for real-time light detection
-      await cameraController!.startImageStream(_processImageStream);
+      // Add a small delay to ensure camera is fully initialized
+      await Future.delayed(Duration(milliseconds: 500));
+      if (mounted && cameraController != null && cameraController!.value.isInitialized) {
+        await cameraController!.startImageStream(_processImageStream);
+      }
 
       if (mounted) {
         setState(() {
@@ -85,21 +107,22 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
         });
       }
     } catch (e) {
-      DevLogs.logError('Error initializing camera: $e');
+      print('Error initializing camera: $e');
       Get.snackbar(
-        'Error',
-        'Failed to initialize camera: $e',
+        'Camera Error',
+        'Failed to initialize camera: ${e.toString().split(':').last}',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: Duration(seconds: 5),
       );
     }
   }
 
-
+  // Find the _processImageStream method and update it to reduce exposure adjustment frequency
   void _processImageStream(CameraImage image) {
-    // Process only every 30 frames to save resources
-    if (image.planes[0].bytes.length % 30 != 0) return;
+    // Process only every 60 frames to save resources (increased from 30)
+    if (image.planes[0].bytes.length % 60 != 0) return;
 
     // Simple brightness detection from Y plane (for YUV format)
     if (image.format.group == ImageFormatGroup.yuv420) {
@@ -127,34 +150,67 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
           isLowLight = newLowLight;
         });
 
-        // Instead of directly checking exposure values, just adjust based on light condition
-        if (isLowLight) {
-          _adjustExposure(0.5); // Increase exposure in low light
-        } else {
-          _adjustExposure(-0.5); // Reset exposure in good light
+
+
+        // Add a delay before adjusting exposure to avoid rapid changes
+        // and only adjust if not already adjusting
+        if (!_isAdjustingExposure) {
+          if (isLowLight ) {
+            _adjustExposure(0.5); // Increase exposure in low light
+          } else if (!isLowLight) {
+            _adjustExposure(-0.5); // Reset exposure in good light
+          }
         }
       }
     }
   }
 
-// Update the exposure adjustment method
-  Future<void> _adjustExposure(double change) async {
+  Future<void> _adjustExposure(double adjustment) async {
     try {
-      // Get the current exposure limits
+      // Add a debounce mechanism to prevent too frequent adjustments
+      if (_isAdjustingExposure) return;
+      _isAdjustingExposure = true;
+
+      // Make sure camera is initialized and ready
+      if (cameraController == null || !cameraController!.value.isInitialized) {
+        _isAdjustingExposure = false;
+        return;
+      }
+
       double minExposure = await cameraController!.getMinExposureOffset();
       double maxExposure = await cameraController!.getMaxExposureOffset();
 
-      // Calculate the new value within limits
-      double currentExposure = await cameraController!.getExposureOffsetStepSize();
-      double newExposure = (currentExposure + change).clamp(minExposure, maxExposure);
+      double newExposure = currentExposure + adjustment;
+      newExposure = newExposure.clamp(minExposure, maxExposure);
 
-      // Set the new exposure value
-      await cameraController!.setExposureOffset(newExposure);
+      // Only adjust if there's an actual change
+      if (newExposure != currentExposure) {
+        await cameraController!.setExposureOffset(newExposure);
+        currentExposure = newExposure;
+      }
     } catch (e) {
-      DevLogs.logError('Error adjusting exposure: $e');
+      // Log the error but don't show to user unless it's critical
+      print('Error adjusting exposure: $e');
+      // Only show user-facing error for critical issues
+      // that aren't just timing/race condition errors
+      if (e.toString().contains('camera being closed') == false) {
+        Get.snackbar(
+          'Camera Adjustment',
+          'Unable to adjust camera exposure. This won\'t affect photo quality.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.black54,
+          colorText: Colors.white,
+          duration: Duration(seconds: 2),
+        );
+      }
+    } finally {
+      // Add a small delay before allowing next adjustment
+      await Future.delayed(Duration(milliseconds: 500));
+      _isAdjustingExposure = false;
     }
   }
 
+  // Update the takePicture method with better error handling
   Future<void> takePicture() async {
     if (cameraController == null || !cameraController!.value.isInitialized || isCapturing) {
       return;
@@ -166,7 +222,15 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
 
     try {
       // Stop image stream before taking picture
-      await cameraController!.stopImageStream();
+      await cameraController!.stopImageStream().timeout(
+        Duration(seconds: 2),
+        onTimeout: () {
+          print('Warning: Stopping image stream timed out, continuing anyway');
+        },
+      );
+
+      // Add a small delay to ensure stream is stopped
+      await Future.delayed(Duration(milliseconds: 200));
 
       // Take picture
       final XFile photo = await cameraController!.takePicture();
@@ -177,14 +241,30 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
       // Go back to previous screen
       Get.back();
     } catch (e) {
-      DevLogs.logError('Error taking picture: $e');
+      print('Error taking picture: $e');
       Get.snackbar(
         'Error',
-        'Failed to take picture: $e',
+        'Failed to take picture. Please try again.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+
+      // Try to restart the camera if it failed
+      if (mounted) {
+        setState(() {
+          isCapturing = false;
+        });
+
+        // Try to restart the image stream if it was stopped
+        try {
+          if (cameraController != null && cameraController!.value.isInitialized) {
+            await cameraController!.startImageStream(_processImageStream);
+          }
+        } catch (streamError) {
+          print('Error restarting image stream: $streamError');
+        }
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -318,4 +398,3 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     );
   }
 }
-

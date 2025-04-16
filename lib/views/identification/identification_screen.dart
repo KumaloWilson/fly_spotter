@@ -3,16 +3,15 @@ import 'package:get/get.dart';
 import '../../controllers/identification_controller.dart';
 import 'camera_screen.dart';
 import 'identification_tips_screen.dart';
+import '../../widgets/fly_info_card.dart';
 
 class IdentificationScreen extends StatefulWidget {
-  const IdentificationScreen({super.key});
-
   @override
-  State<IdentificationScreen> createState() => _IdentificationScreenState();
+  _IdentificationScreenState createState() => _IdentificationScreenState();
 }
 
 class _IdentificationScreenState extends State<IdentificationScreen> {
-  final IdentificationController identificationController = Get.find<IdentificationController>();
+  final IdentificationController identificationController = Get.put(IdentificationController());
 
   @override
   Widget build(BuildContext context) {
@@ -23,40 +22,42 @@ class _IdentificationScreenState extends State<IdentificationScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Obx(() {
-              if (identificationController.errorMessage.isNotEmpty) {
-                return Container(
-                  padding: EdgeInsets.all(10),
-                  margin: EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    identificationController.errorMessage.value,
-                    style: TextStyle(color: Colors.red),
-                  ),
-                );
-              }
-              return SizedBox.shrink();
-            }),
-            Obx(() {
-              if (identificationController.selectedImage.value == null) {
-                return _buildImageSelectionUI();
-              } else {
-                return _buildIdentificationResultsUI();
-              }
-            }),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Obx(() {
+                if (identificationController.errorMessage.isNotEmpty) {
+                  return Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      identificationController.errorMessage.value,
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  );
+                }
+                return SizedBox.shrink();
+              }),
+              Obx(() {
+                if (identificationController.selectedImage.value == null) {
+                  return _buildImageSelectionUI();
+                } else {
+                  return _buildIdentificationResultsUI();
+                }
+              }),
+            ],
+          ),
         ),
       ),
     );
   }
 
-// Fix for the _buildImageSelectionUI method
+  // Modify the _buildImageSelectionUI method to include the camera screen option
   Widget _buildImageSelectionUI() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,10 +65,12 @@ class _IdentificationScreenState extends State<IdentificationScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              '',
-              style: TextStyle(
-                fontSize: 16,
+            Expanded(
+              child: Text(
+                'Take a photo or select an image of a fly to identify',
+                style: TextStyle(
+                  fontSize: 16,
+                ),
               ),
             ),
             IconButton(
@@ -106,9 +109,8 @@ class _IdentificationScreenState extends State<IdentificationScreen> {
           ),
         ),
         SizedBox(height: 10),
-
         Container(
-          height: 300, // Set a fixed height or use MediaQuery to get a dynamic height
+          height: 300, // Fixed height instead of Expanded
           child: Obx(() {
             if (identificationController.identificationHistory.isEmpty) {
               return Center(
@@ -140,7 +142,7 @@ class _IdentificationScreenState extends State<IdentificationScreen> {
                       'Confidence: ${(item.confidenceScore * 100).toStringAsFixed(1)}%',
                     ),
                     trailing: Text(
-                      _formatDate(item.timestamp),
+                      '${_formatDate(item.timestamp)}',
                       style: TextStyle(color: Colors.grey),
                     ),
                   ),
@@ -155,101 +157,185 @@ class _IdentificationScreenState extends State<IdentificationScreen> {
 
   // Modify the _buildIdentificationResultsUI method to handle low light and confidence threshold
   Widget _buildIdentificationResultsUI() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Obx(() => identificationController.isLoading.value
-            ? Center(
-          child: Column(
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Obx(() => identificationController.isLoading.value
+              ? Center(
+            child: Column(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 20),
+                Text('Analyzing image...'),
+              ],
+            ),
+          )
+              : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircularProgressIndicator(),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: Image.file(
+                  identificationController.selectedImage.value!,
+                  width: double.infinity,
+                  height: 250,
+                  fit: BoxFit.cover,
+                ),
+              ),
               SizedBox(height: 20),
-              Text('Analyzing image...'),
+
+              // Show low light warning if detected
+              if (identificationController.isLowLight.value)
+                _buildWarningCard(
+                  icon: Icons.wb_sunny,
+                  title: 'Low Light Detected',
+                  message: 'For better identification accuracy, please take a photo in a well-lit environment.',
+                  actionText: 'Try Again',
+                  onAction: () => identificationController.clearSelectedImage(),
+                ),
+
+              if (!identificationController.isLowLight.value) ...[
+                Text(
+                  'Identification Results',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 10),
+
+                // No flies detected
+                if (identificationController.identificationResults.isEmpty)
+                  _buildWarningCard(
+                    icon: Icons.search_off,
+                    title: 'No Flies Detected',
+                    message: 'We couldn\'t identify any flies in this image. Please try with a clearer image.',
+                    actionText: 'Try Again',
+                    onAction: () => identificationController.clearSelectedImage(),
+                  ),
+
+                // Low confidence results
+                if (identificationController.identificationResults.isNotEmpty &&
+                    identificationController.identificationResults[0]['confidence'] < identificationController.confidenceThreshold.value)
+                  _buildWarningCard(
+                    icon: Icons.error_outline,
+                    title: 'Low Confidence Result',
+                    message: 'We\'re not very confident about this identification (${(identificationController.identificationResults[0]['confidence'] * 100).toStringAsFixed(1)}%). Try with a clearer image for better results.',
+                    actionText: 'Try Again',
+                    onAction: () => identificationController.clearSelectedImage(),
+                    showResults: true,
+                  ),
+
+                // High confidence results
+                if (identificationController.identificationResults.isNotEmpty &&
+                    identificationController.identificationResults[0]['confidence'] >= identificationController.confidenceThreshold.value) ...[
+                  _buildResultsList(),
+
+                  // Show fly information
+                  SizedBox(height: 20),
+                  _buildFlyInformationSection(),
+                ],
+              ],
+
+              SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () => identificationController.clearSelectedImage(),
+                icon: Icon(Icons.refresh),
+                label: Text('Try Another Image'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
             ],
           ),
-        )
-            : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: Image.file(
-                identificationController.selectedImage.value!,
-                width: double.infinity,
-                height: 250,
-                fit: BoxFit.cover,
-              ),
-            ),
-            SizedBox(height: 20),
-
-            // Show low light warning if detected
-            if (identificationController.isLowLight.value)
-              _buildWarningCard(
-                icon: Icons.wb_sunny,
-                title: 'Low Light Detected',
-                message: 'For better identification accuracy, please take a photo in a well-lit environment.',
-                actionText: 'Try Again',
-                onAction: () => identificationController.clearSelectedImage(),
-              ),
-
-            if (!identificationController.isLowLight.value) ...[
-              Text(
-                'Identification Results',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 10),
-
-              // No flies detected
-              if (identificationController.identificationResults.isEmpty)
-                _buildWarningCard(
-                  icon: Icons.search_off,
-                  title: 'No Flies Detected',
-                  message: 'We couldn\'t identify any flies in this image. Please try with a clearer image.',
-                  actionText: 'Try Again',
-                  onAction: () => identificationController.clearSelectedImage(),
-                ),
-
-              // Low confidence results
-              if (identificationController.identificationResults.isNotEmpty &&
-                  identificationController.identificationResults[0]['confidence'] < identificationController.confidenceThreshold.value)
-                _buildWarningCard(
-                  icon: Icons.error_outline,
-                  title: 'Low Confidence Result',
-                  message: 'We\'re not very confident about this identification (${(identificationController.identificationResults[0]['confidence'] * 100).toStringAsFixed(1)}%). Try with a clearer image for better results.',
-                  actionText: 'Try Again',
-                  onAction: () => identificationController.clearSelectedImage(),
-                  showResults: true,
-                ),
-
-              // High confidence results
-              if (identificationController.identificationResults.isNotEmpty &&
-                  identificationController.identificationResults[0]['confidence'] >= identificationController.confidenceThreshold.value)
-                _buildResultsList(),
-            ],
-
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () => identificationController.clearSelectedImage(),
-              icon: Icon(Icons.refresh),
-              label: Text('Try Another Image'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-          ],
-        ),
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 
-// Add this new widget for warning cards
+  // Add this method to build the fly information section
+  Widget _buildFlyInformationSection() {
+    return Obx(() {
+      // If we're loading information
+      if (identificationController.isLoadingInfo.value) {
+        return Center(
+          child: Column(
+            children: [
+              SizedBox(height: 20),
+              CircularProgressIndicator(),
+              SizedBox(height: 10),
+              Text('Fetching additional information...'),
+            ],
+          ),
+        );
+      }
+
+      // If there was an error fetching information
+      if (identificationController.infoErrorMessage.isNotEmpty) {
+        return Card(
+          margin: EdgeInsets.only(top: 16),
+          color: Colors.blue.shade50,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.blue.shade800,
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Additional Information',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                Text(
+                  identificationController.infoErrorMessage.value,
+                  style: TextStyle(color: Colors.red.shade800),
+                ),
+                SizedBox(height: 12),
+                TextButton.icon(
+                  onPressed: () => identificationController.retryFetchingInformation(),
+                  icon: Icon(Icons.refresh),
+                  label: Text('Retry'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.blue.shade800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      // If we have fly information
+      if (identificationController.flyInformation.value != null) {
+        return FlyInfoCard(
+          flyInfo: identificationController.flyInformation.value!,
+        );
+      }
+
+      return SizedBox.shrink();
+    });
+  }
+
+  // Add this new widget for warning cards
   Widget _buildWarningCard({
     required IconData icon,
     required String title,
@@ -445,4 +531,3 @@ class _IdentificationScreenState extends State<IdentificationScreen> {
     }
   }
 }
-
