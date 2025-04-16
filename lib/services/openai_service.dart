@@ -30,7 +30,7 @@ class OpenAIService {
           'Authorization': 'Bearer ${DeepInfraConfigs.apiKey}',
         },
         body: jsonEncode({
-          'model': 'deepseek-ai/Deepseek-V3-0324',
+          'model': 'deepseek-ai/DeepSeek-V3-0324',
           'messages': [
             {
               'role': 'system',
