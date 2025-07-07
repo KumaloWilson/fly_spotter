@@ -30,7 +30,7 @@ class OpenAIService {
           'Authorization': 'Bearer ${DeepInfraConfigs.apiKey}',
         },
         body: jsonEncode({
-          'model': 'deepseek-ai/DeepSeek-V3-0324',
+          'model': 'Qwen/Qwen3-30B-A3B',
           'messages': [
             {
               'role': 'system',

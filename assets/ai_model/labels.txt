@@ -1,43 +1,38 @@
-0 Eristalinus spp
-1 Hermetia illucens
-2 Tabanus astrus
-3 Pangoniinae phololiche
-4 Tabanidae Tabanus
-5 Tachinidae hystricia
-6 Platystomatidae spp
-7 Asilidae Asilinae sp
-8 Asilidae spp
-9 Tabanidae Tabunus
-10 Systoechus spp
-11 Diopsidae spp
-12 Syrphidae spp
-13 Bombyliidae spp
-14 Bombyliidae Anthrax spp
-15 Calliphora spp
-16 Tachina spp
-17 Asilinae
-18 Bromophia caffra
-19 Asilidae A sp
-20 Stratiomydae spp
-21 Sarcophaga spp
-22 Tachina fera spp
-23 Tabanidae s
-24 Poecilantrax spp
-25 Conopidae spp
-26 Coremacera spp
-27 Assilinae sppp
-28 Syrphidae s
-29 Tabanidae spppp
-30 Tabanidae spp
-31 Hystrica spp
-32 Asilidae A. spp
-33 Syrphidae sp
-34 Tabanidae sppp
-35 Diopsidae sp
-36 Muscidae spp
-37 Tabanidae
-38 Notolomatidae pietipennis
-39 Calliphoridae spp
-40 Tachinidae sp
-41 Tachina sp
-42 Calliphoridae sp
+0 Asilidae Alcimus sp
+1 Asilidae Mesoleptogaster sp
+2 Asilidae Perasis sp
+3 Unknown
+4 Asilidae Promachus sp
+5 Asilidae sp
+6 Bombomyia discoidea
+7 Bombyliidae Adelidea sp
+8 Bombyliidae Bombylius discolor
+9 Bombyliidae Eurycarenus sp
+10 Bombyliidae Palintonus sp
+11 Bombyliidae Systochus sp
+12 Calliphoridae Pericallimyia westermanni
+13 Chaetodiopsis sp
+14 Diopsidae Chaetodiopsis sp
+15 Furcamyia sp
+16 Hermetia illucens
+17 Platyschineria sp
+18 Platystomatidae Bromophia caffra
+19 Platystomatidae Furcamyia sp
+20 Rhiniidae Isomyia electa
+21 Rhiniidae Isomyia facialis
+22 Stratiomyidae Hermetia illucens
+23 Syrphidae Asarkina amoena
+24 Syrphidae Eristalinus taeniops
+25 Syrphidae Mesembrius capensis
+26 Syrphidae Phytomia incisa
+27 Tabanidae  Philoliche sp
+28 Tabanidae Atylotus rusticus
+29 Tabanidae Haematopota bigoti
+30 Tabanidae Tabanus sp
+31 Tachinidae Billaea fortis
+32 Tachinidae Chromatophania sp
+33 Tachinidae Dejeania bombylans
+34 Tachinidae Exorista sp
+35 Tachinidae Platyschineria
+36 Therevidae Xestomyza sp
+37 Therevidae  Hemigephyra sp
